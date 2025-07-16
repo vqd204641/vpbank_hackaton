@@ -1,0 +1,30 @@
+version: "3.1"
+
+rules:
+- rule: Say greeting when user greets
+  steps:
+  - intent: greet
+  - action: utter_greet
+
+- rule: Say goodbye when user says goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+# - rule: Suggest jar allocation when user asks
+#   steps:
+#   - intent: ask_jar_allocation
+#   - action: action_suggest_jar_allocation
+#   - action: utter_suggest_jar_allocation
+
+- rule: Evaluate and suggest goal when user sets a financial goal
+  steps:
+  - intent: set_financial_goal
+  - action: action_evaluate_goal
+  - action: utter_suggest_goal
+
+# - rule: Suggest VPBank service when user asks for service
+#   steps:
+#   - intent: ask_vpbank_service
+#   - action: action_suggest_vpbank_service
+#   - action: utter_suggest_service

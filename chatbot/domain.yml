@@ -1,0 +1,49 @@
+version: "3.1"
+
+intents:
+  - ask_jar_allocation
+  - set_financial_goal
+  - ask_vpbank_service
+  - greet
+  - goodbye
+
+entities:
+  - jar
+  - goal
+  - time
+  - amount
+  - service
+
+# slots:
+#   jar:
+#     type: text
+#     influence_conversation: true
+#   goal:
+#     type: text
+#     influence_conversation: true
+#   time:
+#     type: text
+#     influence_conversation: true
+#   amount:
+#     type: text
+#     influence_conversation: true
+#   service:
+#     type: text
+#     influence_conversation: true
+
+responses:
+  utter_greet:
+    - text: "Xin chào! Tôi là trợ lý tài chính của bạn. Bạn muốn tư vấn về phân bổ hũ, đặt mục tiêu, hay dịch vụ VPBank?"
+  utter_goodbye:
+    - text: "Tạm biệt! Hẹn gặp lại khi bạn cần hỗ trợ tài chính."
+  utter_suggest_jar_allocation:
+    - text: "Dựa trên thu nhập và mục tiêu của bạn, tôi gợi ý phân bổ: {jar_allocation}. Bạn có muốn điều chỉnh không?"
+  utter_suggest_goal:
+    - text: "Mục tiêu {goal} của bạn {difficulty}. Tôi đề xuất {suggested_goal} để dễ đạt được hơn."
+  utter_suggest_service:
+    - text: "Dịch vụ {service} của VPBank phù hợp với bạn. Lợi ích: {benefits}. Xem chi tiết tại {link}."
+
+actions:
+  # - action_suggest_jar_allocation
+  - action_evaluate_goal
+  # - action_suggest_vpbank_service

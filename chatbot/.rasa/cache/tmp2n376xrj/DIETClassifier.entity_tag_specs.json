@@ -1,0 +1,52 @@
+[
+  {
+    "tag_name": "entity",
+    "ids_to_tags": {
+      "1": "B-amount",
+      "2": "I-amount",
+      "3": "L-amount",
+      "4": "U-amount",
+      "5": "B-goal",
+      "6": "I-goal",
+      "7": "L-goal",
+      "8": "U-goal",
+      "9": "B-jar",
+      "10": "I-jar",
+      "11": "L-jar",
+      "12": "U-jar",
+      "13": "B-service",
+      "14": "I-service",
+      "15": "L-service",
+      "16": "U-service",
+      "17": "B-time",
+      "18": "I-time",
+      "19": "L-time",
+      "20": "U-time",
+      "0": "O"
+    },
+    "tags_to_ids": {
+      "B-amount": 1,
+      "I-amount": 2,
+      "L-amount": 3,
+      "U-amount": 4,
+      "B-goal": 5,
+      "I-goal": 6,
+      "L-goal": 7,
+      "U-goal": 8,
+      "B-jar": 9,
+      "I-jar": 10,
+      "L-jar": 11,
+      "U-jar": 12,
+      "B-service": 13,
+      "I-service": 14,
+      "L-service": 15,
+      "U-service": 16,
+      "B-time": 17,
+      "I-time": 18,
+      "L-time": 19,
+      "U-time": 20,
+      "O": 0
+    },
+    "num_tags": 21
+  }
+]

@@ -1,0 +1,31 @@
+version: "3.1"
+
+nlu:
+- intent: greet
+  examples: |
+    - Xin chào
+    - Chào bot
+    - Hi
+- intent: goodbye
+  examples: |
+    - Tạm biệt
+    - Bye bye
+    - Hẹn gặp lại
+- intent: ask_jar_allocation
+  examples: |
+    - Tôi nên phân bổ thu nhập thế nào?
+    - Gợi ý cách chia hũ tài chính cho tôi
+    - Tỉ lệ hũ của tôi hiện tại có hợp lý không?
+    - Phân bổ hũ cho [tiết kiệm](jar) và [đầu tư](jar)
+- intent: set_financial_goal
+  examples: |
+    - Tôi muốn [mua nhà](goal) trong [3 năm](time)
+    - Tiết kiệm [5 triệu](amount) trong [tháng sau](time)
+    - Mục tiêu [trả nợ](goal) trong [6 tháng](time)
+    - Đặt mục tiêu [mua xe](goal) với [200 triệu](amount)
+- intent: ask_vpbank_service
+  examples: |
+    - VPBank có gói [tiết kiệm online](service) không?
+    - Tư vấn [vay vốn](service) cho tôi
+    - Dịch vụ [thẻ tín dụng](service) của VPBank có gì nổi bật?
+    - Tôi cần [tài khoản số đẹp](service), VPBank có hỗ trợ không?
