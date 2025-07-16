@@ -135,4 +135,5 @@ def classify_new_user(percent_dict=None, income=None, core_jars=["NEC", "FFA", "
 # Chạy huấn luyện nếu script được gọi trực tiếp
 # if __name__ == "__main__":
     #train_and_save_model("../user_data_ver1/jars_distribution_with_actual.csv")
-    #classify_new_user(income= 14000000)
+    # cluster, income_bin = classify_new_user(income= 14000000)
+    # print(cluster)

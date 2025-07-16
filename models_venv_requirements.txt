@@ -1,1 +1,3 @@
 statsmodels
+langchain-community
+torch

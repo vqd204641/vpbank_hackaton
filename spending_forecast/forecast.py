@@ -93,12 +93,12 @@ class ARIMAPredictor:
         return predictions
 
 # Ví dụ sử dụng (có thể xóa khi nhập từ folder khác)
-if __name__ == "__main__":
-    # Khởi tạo class
-    predictor = ARIMAPredictor()
-
-    # Dự đoán cho cụm 0
-    result = predictor.predict_cluster_spending(0)
-    print(f"\nDự đoán chi tiêu cho cụm 0 (làm tròn đến 100k):")
-    for jar, value in result.items():
-        print(f"{jar}: {value:.2f} VND")
+# if __name__ == "__main__":
+#     # Khởi tạo class
+#     predictor = ARIMAPredictor()
+#     cluster = 0
+#     # Dự đoán cho cụm 0
+#     result = predictor.predict_cluster_spending(cluster)
+#     print(result)
+#     # for jar, value in result.items():
+#     #     print(f"{jar}: {value:.2f} VND")
