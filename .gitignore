@@ -1,3 +1,6 @@
 vpbank_venv
 rasa_venv
 models_venv
+.venv1
+.venv
+__pycache__
