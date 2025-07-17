@@ -1,84 +1,104 @@
+import requests
 from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 
-# class ActionSuggestJarAllocation(Action):
-#     def name(self) -> Text:
-#         return "action_suggest_jar_allocation"
-
-#     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-#         # Simulate logic for jar allocation suggestion
-#         user_income = tracker.get_slot("income") or "unknown"
-#         current_jars = tracker.get_slot("jar") or "unknown"
-#         # Example logic: Suggest fixed allocation based on description
-#         suggested_allocation = "55% nhu cầu thiết yếu, 7% tiết kiệm dài hạn, 13% đầu tư, 12.5% giáo dục, 12.5% hưởng thụ, 0% từ thiện"
-        
-#         dispatcher.utter_message(response="utter_suggest_jar_allocation", jar_allocation=suggested_allocation)
-#         return []
-
-class ActionEvaluateGoal(Action):
+class ActionSuggestJarAllocation(Action):
     def name(self) -> Text:
-        return "action_evaluate_goal"
+        return "action_suggest_jar_allocation"
 
-    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        # Extract goal and related slots
-        goal = tracker.get_slot("goal") or "unknown"
-        time = tracker.get_slot("time") or "unknown"
-        amount = tracker.get_slot("amount") or "unknown"
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
-        # Simulate goal evaluation logic (e.g., Monte Carlo + fuzzy logic)
-        if "mua nhà" in goal and "3 năm" in time:
-            difficulty = "rất khó"
-            suggested_goal = "mua nhà trong 5 năm hoặc tăng tiết kiệm 10 triệu/tháng"
-        else:
-            difficulty = "phù hợp"
-            suggested_goal = f"đạt {goal} trong {time}"
-        
-        dispatcher.utter_message(response="utter_suggest_goal", goal=goal, difficulty=difficulty, suggested_goal=suggested_goal)
+        user_message = tracker.latest_message.get("text")
+        try:
+            response = requests.post(
+                "http://localhost:8000/suggest_jar_percents",
+                json={"income": 15000000,"user_jars": ["NEC", "EDU", "FFA", "PLAY", "LTSS"]},
+                timeout=5
+            )
+            suggestions = response.json().get("data", {})
+        except Exception as e:
+            result = f"Đã xảy ra lỗi khi gọi API: {str(e)}"
+        # print(suggestions)
+        dispatcher.utter_message(text=suggestions)
         return []
 
-# class ActionSuggestVPBankService(Action):
-#     def name(self) -> Text:
-#         return "action_suggest_vpbank_service"
+class ActionEvaluateFinancialGoal(Action):
+    def name(self) -> Text:
+        return "action_evaluate_financial_goal"
 
-#     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-#         # Extract service slot
-#         service = tracker.get_slot("service") or "unknown"
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        user_message = tracker.latest_message.get("text")
+        try:
+            response = requests.post(
+                "http://localhost:8000/evaluate_goal",
+                json={
+                "user_id": 123,
+                "goal_type": "saving",
+                "goal_priority": "Medium",
+                "goal_horizon": "short",
+                "target_amount": 5000.50,
+                "start_date": "2025-07-01",
+                "target_date": "2025-12-31",
+                "associated_jar": "Vacation Fund"
+                },
+                timeout=5
+            )
+            suggestions = response.json().get("data", {})
+        except Exception as e:
+            result = f"Đã xảy ra lỗi khi gọi API: {str(e)}"
+        print(suggestions)
+        #dispatcher.utter_message(text=suggestions)
+        return []
+
+
+class ActionSuggestVPBankService(Action):
+    def name(self) -> Text:
+        return "action_suggest_vpbank_service"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
-#         # Simulate semantic search for VPBank services
-#         service_data = {
-#             "tiết kiệm online": {
-#                 "name": "Tiết kiệm Online VPBank",
-#                 "benefits": "Lãi suất cao, gửi tiền linh hoạt",
-#                 "link": "https://vpbank.com.vn/tiet-kiem-online"
-#             },
-#             "vay vốn": {
-#                 "name": "Vay Vốn VPBank",
-#                 "benefits": "Hạn mức cao, thủ tục nhanh gọn",
-#                 "link": "https://vpbank.com.vn/vay-von"
-#             },
-#             "thẻ tín dụng": {
-#                 "name": "Thẻ Tín Dụng VPBank",
-#                 "benefits": "Ưu đãi hoàn tiền, tích điểm",
-#                 "link": "https://vpbank.com.vn/the-tin-dung"
-#             },
-#             "tài khoản số đẹp": {
-#                 "name": "Tài Khoản Số Đẹp VPBank",
-#                 "benefits": "Số tài khoản tùy chọn, dễ nhớ",
-#                 "link": "https://vpbank.com.vn/tai-khoan-so-dep"
-#             }
-#         }
+        user_message = tracker.latest_message.get("text")
+        try:
+            response = requests.post(
+                "http://localhost:8000/query",
+                json={"query": user_message},
+                timeout=5
+            )
+            suggestions = response.json().get("data", {})
+        except Exception as e:
+            result = f"Đã xảy ra lỗi khi gọi API: {str(e)}"
+        print(suggestions)
+        #dispatcher.utter_message(text=suggestions)
+        return []
+
+class ActionCallRemoteFunc(Action):
+
+    def name(self) -> Text:
+        return "action_call_remote_func"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
-#         service_info = service_data.get(service, {
-#             "name": "Dịch vụ VPBank",
-#             "benefits": "Phù hợp với nhu cầu tài chính của bạn",
-#             "link": "https://vpbank.com.vn"
-#         })
-        
-#         dispatcher.utter_message(
-#             response="utter_suggest_service",
-#             service=service_info["name"],
-#             benefits=service_info["benefits"],
-#             link=service_info["link"]
-#         )
-#         return []
+        user_message = tracker.latest_message.get("text")
+        #print ("***********************************************************",user_message)
+        try:
+            response = requests.post(
+                "http://localhost:8000/suggest_jar_percents",
+                json={"income": 15000000,"user_jars": ["NEC", "EDU", "FFA", "PLAY", "LTSS"]},
+                timeout=5
+            )
+            suggestions = response.json().get("data", {})
+        except Exception as e:
+            result = f"Đã xảy ra lỗi khi gọi API: {str(e)}"
+        # print(suggestions)
+        dispatcher.utter_message(text=suggestions)
+        return []

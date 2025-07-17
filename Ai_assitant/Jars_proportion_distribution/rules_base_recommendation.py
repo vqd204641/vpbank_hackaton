@@ -6,9 +6,17 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")
 sys.path.append(project_root)
 # Giờ có thể import theo đúng đường dẫn thư mục
 from user_classification.classification import classify_new_user
+import google.generativeai as genai
+from dotenv import load_dotenv
 
 clusters_df = pd.read_csv("../../user_classification/user_clusters.csv")
 jars_df = pd.read_csv("../../user_data_ver1/jars_distribution_with_actual.csv")
+
+load_dotenv(dotenv_path="../../.env")
+
+# Lấy API key từ biến môi trường
+api_key = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=api_key)
 
 # Tính tỷ lệ hoàn thành như trước
 def compute_completion_rates(cluster):
@@ -84,12 +92,41 @@ def suggest_percents_for_user(income, user_jars,percent_dict=None):
         # Scale up cho đủ 100%
         scale = 100 / total_percent if total_percent > 0 else 0
         suggestions = {jar: round(percent * scale, 2) for jar, percent in suggestions.items()}
+    jar_labels = {
+        "NEC": "Nhu cầu thiết yếu",                        # Necessities
+        "FFA": "Tự do tài chính",                          # Financial Freedom Account
+        "EDU": "Giáo dục & phát triển bản thân",           # Education
+        "LTSS": "Tiết kiệm dài hạn cho chi tiêu lớn",      # Long-Term Savings for Spending
+        "PLAY": "Hưởng thụ",                               # Play
+        "GIVE": "Chia sẻ & từ thiện",                      # Giving
+        "HEALTH": "Sức khỏe",                              # Health
+        "FAMILY": "Gia đình",                              # Family
+        "EMERGENCY": "Quỹ khẩn cấp",                       # Emergency Fund
+        "DREAM": "Ước mơ & mục tiêu lớn"                   # Dream Jar
+    }
 
+    jar_text = "\n".join([
+        f"- {jar}: {jar_labels.get(jar, jar)} – {float(suggestions[jar]):.2f}%"
+        for jar in user_jars if jar in suggestions
+    ])    
     # 6. Trả về dưới dạng DataFrame
-    return pd.DataFrame([
-        {'jar': jar, 'suggested_percent': percent}
-        for jar, percent in suggestions.items()
-    ]).sort_values(by='suggested_percent', ascending=False).reset_index(drop=True)
+    prompt = f"""
+    Tôi muốn bạn đóng vai một cố vấn tài chính cá nhân.  
+    Dưới đây là tỷ lệ phân bố chi tiêu đề xuất cho một người dùng dựa trên:
+    - Dữ liệu thực tế của những người có thu nhập tương tự và có tỷ lệ hoàn thành mục tiêu tài chính cao  
+    - Kết hợp với lời khuyên của chuyên gia tài chính
+
+    Tỷ lệ phân bổ hũ như sau:
+    {jar_text}
+
+    Hãy đưa ra một **lời khuyên ngắn gọn (4-6 câu) và dễ hiểu** cho người dùng về cách phân bố thu nhập theo các hũ trên.  
+    Vui lòng trình bày lời khuyên theo phong cách **giao tiếp tự nhiên**, **động viên**, và giúp người dùng cảm thấy yên tâm khi áp dụng.
+    Tóm tắt lại % các hũ đã chia trong 1 dòng ở cuối câu.
+    """
+    model = genai.GenerativeModel("gemini-1.5-flash-latest")
+    response = model.generate_content(prompt)
+
+    return response.text
 
 # suggestions = suggest_percents_for_user(income= 15000000, user_jars = ["NEC", "EDU", "FFA", "PLAY","LTSS"])
 # print(suggestions)

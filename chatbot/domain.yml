@@ -4,46 +4,107 @@ intents:
   - ask_jar_allocation
   - set_financial_goal
   - ask_vpbank_service
-  - greet
-  - goodbye
+  # - greet
+  # - goodbye
+  - test
 
 entities:
-  - jar
-  - goal
-  - time
-  - amount
-  - service
+  #set goal entitis
+  - goal_name
+  - goal_amount
+  - duration_months
+  - priority
+  - income
+  - current_saving
+  - saving_percent
 
-# slots:
-#   jar:
-#     type: text
-#     influence_conversation: true
-#   goal:
-#     type: text
-#     influence_conversation: true
-#   time:
-#     type: text
-#     influence_conversation: true
-#   amount:
-#     type: text
-#     influence_conversation: true
-#   service:
-#     type: text
-#     influence_conversation: true
+  #RAG
+  - service
+  
+slots:
+  goal_name:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: goal_name
+
+  goal_amount:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: goal_amount
+
+  duration_months:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: duration_months
+
+  priority:
+    type: categorical
+    values:
+      - thấp
+      - trung bình
+      - cao
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: priority
+
+  income:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: income
+
+  current_saving:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: current_saving
+
+  saving_percent:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: saving_percent
 
 responses:
-  utter_greet:
-    - text: "Xin chào! Tôi là trợ lý tài chính của bạn. Bạn muốn tư vấn về phân bổ hũ, đặt mục tiêu, hay dịch vụ VPBank?"
-  utter_goodbye:
-    - text: "Tạm biệt! Hẹn gặp lại khi bạn cần hỗ trợ tài chính."
-  utter_suggest_jar_allocation:
-    - text: "Dựa trên thu nhập và mục tiêu của bạn, tôi gợi ý phân bổ: {jar_allocation}. Bạn có muốn điều chỉnh không?"
-  utter_suggest_goal:
-    - text: "Mục tiêu {goal} của bạn {difficulty}. Tôi đề xuất {suggested_goal} để dễ đạt được hơn."
-  utter_suggest_service:
-    - text: "Dịch vụ {service} của VPBank phù hợp với bạn. Lợi ích: {benefits}. Xem chi tiết tại {link}."
+  #set goal response
+  utter_ask_goal_name:
+    - text: "Bạn muốn đạt mục tiêu gì?"
+  utter_ask_goal_amount:
+    - text: "Mục tiêu đó cần khoảng bao nhiêu tiền (VND)?"
+  utter_ask_duration_months:
+    - text: "Bạn muốn đạt được mục tiêu đó trong bao lâu (tháng)?"
+  utter_ask_priority:
+    - text: "Mục tiêu này có quan trọng không? (thấp/trung bình/cao)"
+  utter_ask_income:
+    - text: "Thu nhập hàng tháng hiện tại của bạn là bao nhiêu?"
+  utter_ask_current_saving:
+    - text: "Hiện bạn đã tiết kiệm được bao nhiêu rồi?"
+  utter_ask_saving_percent:
+    - text: "Bạn tiết kiệm bao nhiêu phần trăm thu nhập mỗi tháng?"
+
+forms:
+  financial_goal_form:
+    required_slots:
+      - goal_name
+      - goal_amount
+      - duration_months
+      - priority
+      - income
+      - current_saving
+      - saving_percent
 
 actions:
-  # - action_suggest_jar_allocation
-  - action_evaluate_goal
-  # - action_suggest_vpbank_service
+  - action_suggest_jar_allocation
+  - action_evaluate_financial_goal
+  - action_suggest_vpbank_service
+  - action_call_remote_func

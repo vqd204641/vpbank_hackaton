@@ -100,13 +100,12 @@ async def suggest_jar_percents_endpoint(request: JarSuggestionRequest):
     Suggests jar distribution percentages based on user income and existing jars.
     """
     try:
-        suggestions_df = suggest_percents_for_user(
+        suggestions = suggest_percents_for_user(
             income=request.income,
             user_jars=request.user_jars,
             percent_dict=request.current_percents
         )
         # Convert DataFrame to a list of dictionaries for JSON response
-        suggestions = suggestions_df.to_dict(orient='records')
         return {"message": "Jar percentage suggestion successful", "data": suggestions}
     except Exception as e:
         # Log the exception for debugging

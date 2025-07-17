@@ -4,3 +4,5 @@ models_venv
 .venv1
 .venv
 __pycache__
+models_venv4
+.env

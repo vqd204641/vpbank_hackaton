@@ -1,16 +1,16 @@
 version: "3.1"
 
 nlu:
-- intent: greet
-  examples: |
-    - Xin chào
-    - Chào bot
-    - Hi
-- intent: goodbye
-  examples: |
-    - Tạm biệt
-    - Bye bye
-    - Hẹn gặp lại
+# - intent: greet
+#   examples: |
+#     - Xin chào
+#     - Chào bot
+#     - Hi
+# - intent: goodbye
+#   examples: |
+#     - Tạm biệt
+#     - Bye bye
+#     - Hẹn gặp lại
 - intent: ask_jar_allocation
   examples: |
     - Tôi nên phân bổ thu nhập thế nào?
@@ -19,13 +19,64 @@ nlu:
     - Phân bổ hũ cho [tiết kiệm](jar) và [đầu tư](jar)
 - intent: set_financial_goal
   examples: |
-    - Tôi muốn [mua nhà](goal) trong [3 năm](time)
-    - Tiết kiệm [5 triệu](amount) trong [tháng sau](time)
-    - Mục tiêu [trả nợ](goal) trong [6 tháng](time)
-    - Đặt mục tiêu [mua xe](goal) với [200 triệu](amount)
+    - Tôi muốn [mua xe](goal_name) trong [24](duration_months) tháng với giá khoảng [800000000](goal_amount)
+    - Mục tiêu của tôi là [đi du học](goal_name) trong [12](duration_months) tháng, cần [1000000000](goal_amount)
+    - Tôi định dành [300000000](goal_amount) để [xây nhà](goal_name) trong vòng [18](duration_months) tháng
+    - Tôi muốn tiết kiệm [100000000](goal_amount) trong vòng [10](duration_months) tháng để [cưới vợ](goal_name)
+    - Trong [6](duration_months) tháng tới, tôi muốn có [200000000](goal_amount) để [khởi nghiệp](goal_name)
+    - Mục tiêu là tích lũy [500000000](goal_amount) trong [24](duration_months) tháng để [mua đất](goal_name)
+    - Ưu tiên [cao](priority) của tôi là tiết kiệm [1000000000](goal_amount) trong [36](duration_months) tháng để [mua nhà](goal_name)
+    - Tôi muốn tiết kiệm [30](saving_percent)% thu nhập mỗi tháng để đạt [400000000](goal_amount) trong [24](duration_months) tháng
+    - Tôi đang có [50000000](current_saving), thu nhập [15000000](income)/tháng, muốn [mua xe máy](goal_name) giá [70000000](goal_amount) trong [4](duration_months) tháng
+    - Tôi kiếm được [20000000](income)/tháng, tiết kiệm [10](saving_percent)%, muốn có [200000000](goal_amount) trong [12](duration_months) tháng
+    - Mục tiêu: [mua máy tính](goal_name), số tiền cần: [30000000](goal_amount), thời gian: [3](duration_months) tháng, ưu tiên: [cao](priority)
+    - Tôi tiết kiệm [15](saving_percent)% thu nhập [18000000](income)/tháng, hiện có [70000000](current_saving), muốn có [300000000](goal_amount) trong [20](duration_months) tháng để [du lịch Châu Âu](goal_name)
+# - intent: inform_priority
+#   examples: |
+#     - Mục tiêu này có [thấp](priority) độ ưu tiên
+#     - Nó [cao](priority) trong danh sách của tôi
+#     - Tôi nghĩ nó [trung bình](priority) thôi
+#     - Ưu tiên là [cao](priority)
+#     - Tôi cho rằng [thấp](priority)
+#     - Tôi thấy mục tiêu này [trung bình](priority)
+#     - Ưu tiên: [thấp](priority)
+#     - [cao](priority)
+#     - [trung bình](priority)
+#     - [thấp](priority)
 - intent: ask_vpbank_service
   examples: |
     - VPBank có gói [tiết kiệm online](service) không?
     - Tư vấn [vay vốn](service) cho tôi
     - Dịch vụ [thẻ tín dụng](service) của VPBank có gì nổi bật?
     - Tôi cần [tài khoản số đẹp](service), VPBank có hỗ trợ không?
+
+    
+- synonym: cao
+  examples: |
+    - 3
+    - rất quan trọng
+- synonym: trung bình
+  examples: |
+    - 2
+    - vừa vừa
+- synonym: thấp
+  examples: |
+    - 1
+    - không quan trọng
+
+
+- regex: goal_amount
+  examples: |
+    - \d+(\.\d+)?\s?(triệu|tỷ|vnđ|VND|đ)
+
+- regex: duration_months
+  examples: |
+    - \d+\s?(tháng|năm)
+
+- regex: saving_percent
+  examples: |
+    - \d+%
+
+- intent: test
+  examples: |
+    - test

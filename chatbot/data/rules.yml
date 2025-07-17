@@ -1,30 +1,39 @@
 version: "3.1"
 
 rules:
-- rule: Say greeting when user greets
-  steps:
-  - intent: greet
-  - action: utter_greet
-
-- rule: Say goodbye when user says goodbye
-  steps:
-  - intent: goodbye
-  - action: utter_goodbye
-
-# - rule: Suggest jar allocation when user asks
+# - rule: Say greeting when user greets
 #   steps:
-#   - intent: ask_jar_allocation
-#   - action: action_suggest_jar_allocation
-#   - action: utter_suggest_jar_allocation
+#   - intent: greet
+#   - action: utter_greet
 
-- rule: Evaluate and suggest goal when user sets a financial goal
+- rule: Suggest jar allocation when user asks
   steps:
-  - intent: set_financial_goal
-  - action: action_evaluate_goal
-  - action: utter_suggest_goal
+  - intent: ask_jar_allocation
+  - action: action_suggest_jar_allocation
 
-# - rule: Suggest VPBank service when user asks for service
+- rule: Kích hoạt form thiết lập mục tiêu tài chính
+  steps:
+    - intent: set_financial_goal
+    - action: action_evaluate_financial_goal
+    # - action: financial_goal_form
+    # - active_loop: financial_goal_form
+
+# - rule: Khi form điền xong -> đánh giá
+#   condition:
+#     - active_loop: financial_goal_form
 #   steps:
-#   - intent: ask_vpbank_service
-#   - action: action_suggest_vpbank_service
+#     - action: financial_goal_form
+#     - active_loop: null
+#     - action: action_evaluate_financial_goal
+
+
+- rule: Suggest VPBank service when user asks for service
+  steps:
+  - intent: ask_vpbank_service
+  - action: action_suggest_vpbank_service
 #   - action: utter_suggest_service
+
+- rule: test api
+  steps:
+  - intent: test
+  - action: action_call_remote_func

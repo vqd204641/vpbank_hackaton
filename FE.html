@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rasa Chat</title>
+</head>
+<body>
+  <h2>Chat với Rasa</h2>
+  <div id="chat-box"></div>
+  <input type="text" id="message" placeholder="Nhập tin nhắn...">
+  <button onclick="sendMessage()">Gửi</button>
+
+  <script>
+    async function sendMessage() {
+      const msg = document.getElementById("message").value;
+      document.getElementById("chat-box").innerHTML += "<p><b>Bạn:</b> " + msg + "</p>";
+
+      const response = await fetch("http://localhost:5005/webhooks/rest/webhook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender: "user123",  // ID của người dùng, tùy bạn
+          message: msg
+        })
+      });
+
+      const data = await response.json();
+      data.forEach((d) => {
+        document.getElementById("chat-box").innerHTML += "<p><b>Bot:</b> " + d.text + "</p>";
+      });
+
+      document.getElementById("message").value = "";
+    }
+  </script>
+</body>
+</html>

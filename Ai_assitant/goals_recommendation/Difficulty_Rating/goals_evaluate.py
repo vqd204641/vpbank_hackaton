@@ -4,6 +4,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from datetime import datetime
 import sys
 import os
+project_root = os.path.abspath(os.path.join(os.getcwd(), "../../../"))
 
 # Adjust the path to be relative to this file's location
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
@@ -130,27 +131,25 @@ class GoalEvaluator:
         return {
             'feasibility': feasibility_label,
             'new_goal_feasibility': round(new_feasibility * 100, 2),
-            'avg_completion': round(avg_completion, 2) if pd.notna(avg_completion) else None,
+            #'avg_completion': round(avg_completion, 2) if pd.notna(avg_completion) else None,
             'avg_feasibility': round(avg_feasibility * 100, 2),
-            'similar_goals': similar_goals[['goal_id', 'user_id', 'completion_percent', 'target_amount', 'duration_days', 'associated_jar', 'cluster']].to_dict('records'),
+            #'similar_goals': similar_goals[['goal_id', 'user_id', 'completion_percent', 'target_amount', 'duration_days', 'associated_jar', 'cluster']].to_dict('records'),
             'suggestions': suggestions
         }
 
-# Example usage for testing purposes
-if __name__ == '__main__':
-    evaluator = GoalEvaluator()
+# if __name__ == '__main__':
+#     evaluator = GoalEvaluator()
     
-    new_goal_example = {
-        'user_id': 6,
-        'goal_type': 'saving',
-        'goal_priority': 'Medium',
-        'goal_horizon': 'long',
-        'target_amount': 1000000000,
-        'start_date': '2025-07-01',
-        'target_date': '2028-07-01',
-        'associated_jar': 'EMERGENCY',
-    }
+#     new_goal_example = {
+#         'user_id': 6,
+#         'goal_type': 'saving',
+#         'goal_priority': 'Medium',
+#         'goal_horizon': 'long',
+#         'target_amount': 10000000,
+#         'start_date': '2025-07-01',
+#         'target_date': '2028-07-01',
+#         'associated_jar': 'EMERGENCY',
+#     }
     
-    result = evaluator.evaluate_new_goal(new_goal_example)
-    import json
-    print(json.dumps(result, indent=4, ensure_ascii=False))
+#     result = evaluator.evaluate_new_goal(new_goal_example)
+#     print(result)

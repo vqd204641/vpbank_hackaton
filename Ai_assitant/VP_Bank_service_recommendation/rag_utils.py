@@ -46,3 +46,5 @@ def query_rag(query: str, vectorstore: FAISS):
         }
         results.append(result)
     return results
+
+# print(None == get_vectorstore())

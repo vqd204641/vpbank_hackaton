@@ -1,0 +1,14 @@
+[
+  {
+    "name": "duration_months",
+    "pattern": "\\d+\\s?(tháng|năm)"
+  },
+  {
+    "name": "goal_amount",
+    "pattern": "\\d+(\\.\\d+)?\\s?(triệu|tỷ|vnđ|VND|đ)"
+  },
+  {
+    "name": "saving_percent",
+    "pattern": "\\d+%"
+  }
+]
