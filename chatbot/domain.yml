@@ -107,4 +107,6 @@ actions:
   - action_suggest_jar_allocation
   - action_evaluate_financial_goal
   - action_suggest_vpbank_service
+
+  - action_session_start
   - action_call_remote_func

@@ -11,7 +11,7 @@ class ActionSuggestJarAllocation(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
-        user_message = tracker.latest_message.get("text")
+        # user_message = tracker.latest_message.get("text")
         try:
             response = requests.post(
                 "http://localhost:8000/suggest_jar_percents",
@@ -32,28 +32,28 @@ class ActionEvaluateFinancialGoal(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-
+        
         user_message = tracker.latest_message.get("text")
         try:
             response = requests.post(
                 "http://localhost:8000/evaluate_goal",
                 json={
-                "user_id": 123,
-                "goal_type": "saving",
-                "goal_priority": "Medium",
-                "goal_horizon": "short",
-                "target_amount": 5000.50,
-                "start_date": "2025-07-01",
-                "target_date": "2025-12-31",
-                "associated_jar": "Vacation Fund"
+                    'user_id': 6,
+                    'goal_type': 'saving',
+                    'goal_priority': 'Medium',
+                    'goal_horizon': 'long',
+                    'target_amount': 10000000,
+                    'start_date': '2025-07-01',
+                    'target_date': '2028-07-01',
+                    'associated_jar': 'EMERGENCY',
                 },
                 timeout=5
             )
             suggestions = response.json().get("data", {})
         except Exception as e:
             result = f"Đã xảy ra lỗi khi gọi API: {str(e)}"
-        print(suggestions)
-        #dispatcher.utter_message(text=suggestions)
+        # print(suggestions)
+        dispatcher.utter_message(text=suggestions)
         return []
 
 
@@ -66,6 +66,7 @@ class ActionSuggestVPBankService(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
         user_message = tracker.latest_message.get("text")
+
         try:
             response = requests.post(
                 "http://localhost:8000/query",
@@ -75,8 +76,7 @@ class ActionSuggestVPBankService(Action):
             suggestions = response.json().get("data", {})
         except Exception as e:
             result = f"Đã xảy ra lỗi khi gọi API: {str(e)}"
-        print(suggestions)
-        #dispatcher.utter_message(text=suggestions)
+        dispatcher.utter_message(text=suggestions)
         return []
 
 class ActionCallRemoteFunc(Action):
@@ -88,17 +88,5 @@ class ActionCallRemoteFunc(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
-        user_message = tracker.latest_message.get("text")
-        #print ("***********************************************************",user_message)
-        try:
-            response = requests.post(
-                "http://localhost:8000/suggest_jar_percents",
-                json={"income": 15000000,"user_jars": ["NEC", "EDU", "FFA", "PLAY", "LTSS"]},
-                timeout=5
-            )
-            suggestions = response.json().get("data", {})
-        except Exception as e:
-            result = f"Đã xảy ra lỗi khi gọi API: {str(e)}"
-        # print(suggestions)
-        dispatcher.utter_message(text=suggestions)
+        dispatcher.utter_message(text="test thành công")
         return []

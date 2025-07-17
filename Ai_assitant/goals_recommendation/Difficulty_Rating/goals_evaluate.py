@@ -4,6 +4,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 from datetime import datetime
 import sys
 import os
+
+import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+
 project_root = os.path.abspath(os.path.join(os.getcwd(), "../../../"))
 
 # Adjust the path to be relative to this file's location
@@ -11,6 +16,13 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..
 sys.path.append(project_root)
 
 from spending_forecast.forecast import ARIMAPredictor
+
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path="../../.env")
+# Lấy API key từ biến môi trường
+
 
 class GoalEvaluator:
     def __init__(self):
@@ -30,9 +42,73 @@ class GoalEvaluator:
         self.df_goals = pd.read_csv(user_data_path)
         self.df_clusters = pd.read_csv(clusters_path)
 
+        api_key = os.getenv("GEMINI_API_KEY")
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel("gemini-1.5-flash-latest")
+
         # Preprocess data
         self._preprocess_data()
 
+    def calculate_feasibility_label(self, avg_feasibility, new_feasibility, goal_priority, goal_amount):
+        avg_feas = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'avg_feasibility')
+        new_feas = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'new_feasibility')
+        priority = ctrl.Antecedent(np.arange(0, 3, 1), 'goal_priority')
+        amount = ctrl.Antecedent(np.arange(0, 5_000_000_001, 100_000_000), 'goal_amount')
+
+        feasibility = ctrl.Consequent(np.arange(0, 1.1, 0.1), 'feasibility_label')
+
+        # Membership functions
+        avg_feas.automf(3)
+        new_feas.automf(3)
+        priority['low'] = fuzz.trimf(priority.universe, [0, 0, 1])
+        priority['medium'] = fuzz.trimf(priority.universe, [0, 1, 2])
+        priority['high'] = fuzz.trimf(priority.universe, [1, 2, 2])
+
+        amount['small'] = fuzz.trimf(amount.universe, [0, 0, 1_000_000_000])
+        amount['medium'] = fuzz.trimf(amount.universe, [500_000_000, 2_000_000_000, 3_000_000_000])
+        amount['large'] = fuzz.trimf(amount.universe, [2_000_000_000, 5_000_000_000, 5_000_000_000])
+
+        feasibility['low'] = fuzz.trimf(feasibility.universe, [0, 0, 0.5])
+        feasibility['medium'] = fuzz.trimf(feasibility.universe, [0.3, 0.5, 0.7])
+        feasibility['high'] = fuzz.trimf(feasibility.universe, [0.5, 1, 1])
+
+        # Labels for easier iteration
+        avg_levels = ['poor', 'average', 'good']      # auto-named by automf
+        new_levels = ['poor', 'average', 'good']
+        priority_levels = ['low', 'medium', 'high']
+        amount_levels = ['small', 'medium', 'large']
+
+        rules = []
+        for af in avg_levels:
+            for nf in new_levels:
+                for pr in priority_levels:
+                    for am in amount_levels:
+                        # Rule logic
+                        if af == 'good' and nf == 'good' and pr == 'low' and am in ['small', 'medium']:
+                            out = 'high'
+                        elif af == 'poor' or nf == 'poor' or pr == 'high' or am == 'large':
+                            out = 'low'
+                        else:
+                            out = 'medium'
+
+                        rule = ctrl.Rule(
+                            avg_feas[af] & new_feas[nf] & priority[pr] & amount[am],
+                            feasibility[out]
+                        )
+                        rules.append(rule)
+
+        # Build system
+        system = ctrl.ControlSystem(rules)
+        sim = ctrl.ControlSystemSimulation(system)
+
+        sim.input['avg_feasibility'] = float(avg_feasibility)
+        sim.input['new_feasibility'] = float(new_feasibility)
+        sim.input['goal_priority'] = float(goal_priority)
+        sim.input['goal_amount'] = float(goal_amount)
+
+        sim.compute()
+        return round(sim.output['feasibility_label'], 3)
+    
     def _preprocess_data(self):
         self.df_goals['start_date'] = pd.to_datetime(self.df_goals['start_date'])
         self.df_goals['target_date'] = pd.to_datetime(self.df_goals['target_date'])
@@ -91,7 +167,8 @@ class GoalEvaluator:
 
         new_features = self._extract_features(new_goal)
         new_feasibility = new_features['feasibility']
-
+        goal_priority = {'Low': 0, 'Medium': 1, 'High': 2}.get(new_features['goal_priority'], 1)
+        goal_amount = new_features["target_amount"]
         similar_goals = self._find_similar_goals(new_features)
 
         if similar_goals.empty:
@@ -107,49 +184,46 @@ class GoalEvaluator:
         avg_completion = similar_goals['completion_percent'].mean()
         avg_feasibility = similar_goals['features'].apply(lambda x: x['feasibility']).mean()
 
-        feasibility_label = (
-            'Khả thi' if avg_completion > 50 and avg_feasibility > 0.5 and new_feasibility > 0.5 else
-            'Khó đạt' if (avg_completion > 20 or avg_feasibility > 0.2) and new_feasibility > 0.2 else
-            'Rất khó đạt'
-        )
+        feasibility_label = self.calculate_feasibility_label(avg_feasibility=avg_feasibility,new_feasibility=new_feasibility,goal_priority=goal_priority,goal_amount=goal_amount)
 
         suggestions = []
         monthly_target = new_features['monthly_target']
         spend, save = self.predict_cluster[cluster]['spending'], self.predict_cluster[cluster]['saving']
+        prompt = f"""
+        Bạn là một chuyên gia tài chính cá nhân. Hãy phân tích và đưa ra đánh giá cho mục tiêu tài chính sau của người dùng.
 
-        if new_goal['goal_type'] == 'saving':
-            if monthly_target > save and save > 0:
-                suggestions.append(f"Số tiền tiết kiệm hàng tháng ({monthly_target:,.0f}) vượt khả năng tiết kiệm ({save:,.0f}). Cân nhắc giảm target_amount hoặc kéo dài target_date.")
-            if new_feasibility < 0.5:
-                suggestions.append(f"Khả năng đạt mục tiêu tiết kiệm thấp ({new_feasibility*100:.2f}%). Cân nhắc điều chỉnh mục tiêu.")
-        elif new_goal['goal_type'] == 'spending':
-            if monthly_target > spend and spend > 0:
-                suggestions.append(f"Số tiền chi tiêu hàng tháng ({monthly_target:,.0f}) vượt khả năng chi tiêu ({spend:,.0f}). Cân nhắc giảm target_amount.")
-            if new_feasibility < 0.5:
-                suggestions.append(f"Khả năng đạt mục tiêu chi tiêu thấp ({new_feasibility*100:.2f}%). Cân nhắc điều chỉnh mục tiêu.")
+        ### Thông tin mục tiêu:
+        - Mức độ ưu tiên của mục tiêu: {new_features['goal_priority']} (mã số: {goal_priority})
+        - Số tiền mục tiêu: {goal_amount:,} VNĐ
+        - Số ngày thực hiện: {new_goal['duration_days']} ngày
+        - Số tiền cần tiết kiệm mỗi tháng để đạt mục tiêu: {monthly_target:,.0f} VNĐ/tháng
+        - Tỷ lệ khả thi của mục tiêu (tính toán bởi hệ thống): {new_feasibility:.2f} (trên thang 0–1)
+        - Mức độ khả thi trung bình của các mục tiêu tương tự: {avg_feasibility:.2f}
+        - Tỷ lệ hoàn thành trung bình của các mục tiêu tương tự: {avg_completion:.2f}%
+        - Nhãn đánh giá mức độ khả thi được tính toán: {feasibility_label*100}% khả năng hoàn thành
 
-        return {
-            'feasibility': feasibility_label,
-            'new_goal_feasibility': round(new_feasibility * 100, 2),
-            #'avg_completion': round(avg_completion, 2) if pd.notna(avg_completion) else None,
-            'avg_feasibility': round(avg_feasibility * 100, 2),
-            #'similar_goals': similar_goals[['goal_id', 'user_id', 'completion_percent', 'target_amount', 'duration_days', 'associated_jar', 'cluster']].to_dict('records'),
-            'suggestions': suggestions
-        }
-
-# if __name__ == '__main__':
-#     evaluator = GoalEvaluator()
+        ### Yêu cầu:
+        1. Trình bày ngắn gọn trong 6-8 câu
+        2. Đưa ra đánh giá tổng quan về khả năng đạt mục tiêu của người dùng dựa trên các thông tin trên.
+        3. Nếu mục tiêu có rủi ro không đạt, gợi ý điều chỉnh cụ thể (ví dụ: kéo dài thời gian, giảm số tiền, tăng tiết kiệm,...).
+        4. Trình bày bằng tiếng Việt, rõ ràng, có phân tích logic.
+        """
+        response = self.model .generate_content(prompt)
+        return response.text
     
-#     new_goal_example = {
-#         'user_id': 6,
-#         'goal_type': 'saving',
-#         'goal_priority': 'Medium',
-#         'goal_horizon': 'long',
-#         'target_amount': 10000000,
-#         'start_date': '2025-07-01',
-#         'target_date': '2028-07-01',
-#         'associated_jar': 'EMERGENCY',
-#     }
+if __name__ == '__main__':
+    evaluator = GoalEvaluator()
     
-#     result = evaluator.evaluate_new_goal(new_goal_example)
-#     print(result)
+    new_goal_example = {
+        'user_id': 6,
+        'goal_type': 'saving',
+        'goal_priority': 'Medium',
+        'goal_horizon': 'long',
+        'target_amount': 10000000,
+        'start_date': '2025-07-01',
+        'target_date': '2028-07-01',
+        'associated_jar': 'EMERGENCY',
+    }
+    
+    result = evaluator.evaluate_new_goal(new_goal_example)
+    print(result)
